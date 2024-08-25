@@ -6,22 +6,23 @@ import { keyring } from '@polkadot/ui-keyring';
 import type {
   Abi,
   ApiPromise,
+  Balance,
+  Bytes,
+  ChainType,
   ContractInstantiateResult,
   SubmittableExtrinsic,
   SubmittableResult,
-  ChainType,
   WeightV2,
-  Bytes,
-  Balance,
 } from '../substrate';
 
-export type Status = 'loading' | 'connected' | 'error';
+export type Status = 'connect' | 'loading' | 'connected' | 'error' | 'disconnect';
 
 export interface ApiState extends ChainProperties {
   endpoint: string;
   setEndpoint: (e: string) => void;
   status: Status;
   api: ApiPromise;
+  setStatus: (str: string) => void;
   accounts?: Account[];
 }
 

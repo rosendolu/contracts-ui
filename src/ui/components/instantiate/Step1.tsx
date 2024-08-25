@@ -2,23 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { useApi, useDatabase, useInstantiate } from 'ui/contexts';
+import { useDbQuery } from 'ui/hooks';
+import { useNonEmptyString } from 'ui/hooks/useNonEmptyString';
 import { AccountSelect } from '../account';
-import { Button, Buttons } from '../common/Button';
 import { Loader } from '../common/Loader';
 import { Form, FormField, Input, InputFile, getValidation, useMetadataField } from '../form';
 import { MessageDocs } from '../message';
 import { Metadata } from '../metadata';
 import { CodeHash } from './CodeHash';
-import { useApi, useDatabase, useInstantiate } from 'ui/contexts';
-import { useDbQuery } from 'ui/hooks';
-import { useNonEmptyString } from 'ui/hooks/useNonEmptyString';
 
 import { fileToFileState } from 'lib/fileToFileState';
 import { getContractFromPatron } from 'lib/getContractFromPatron';
+import { Button, Buttons } from 'ui/components/common';
 import { useAccountAvailable } from 'ui/hooks/useAccountAvailable';
 
 export function Step1() {
+  const navigate = useNavigate();
   const { codeHash: codeHashUrlParam } = useParams<{ codeHash: string }>();
   const { db } = useDatabase();
   const [codeBundle] = useDbQuery(
@@ -26,7 +27,7 @@ export function Step1() {
     [codeHashUrlParam, db],
   );
 
-  const { accounts } = useApi();
+  const { accounts, setStatus } = useApi();
   const { setStep, setData, data, step } = useInstantiate();
 
   const [accountId, setAccountId] = useState('');
@@ -95,12 +96,37 @@ export function Step1() {
           isError={isAccountAvailable === false}
           message="Selected Account is not available to sign extrinsics."
         >
-          <AccountSelect
-            className="mb-2"
-            id="accountId"
-            onChange={setAccountId}
-            value={accountId}
-          />
+          <div className="flex w-full">
+            <AccountSelect
+              className="mb-2 flex-1"
+              id="accountId"
+              onChange={setAccountId}
+              value={accountId}
+            />
+            {/* <button
+              style={{ border: '1px solid #3a424e', borderRadius: '4px' }}
+              className="flex-0 text-primay m-4 inline-block p-2"
+              onClick={() => {
+                setStatus('disconnect');
+                navigate('/');
+              }}
+            >
+              Change Wallet
+            </button> */}
+            <Buttons>
+              <Button
+                data-cy="next-btn"
+                className="m-4"
+                onClick={() => {
+                  setStatus('disconnect');
+                  navigate('/');
+                }}
+                variant="primary"
+              >
+                Change Wallet
+              </Button>
+            </Buttons>
+          </div>
         </FormField>
         <FormField
           help="A name for the new contract to help users distinguish it. Only used for display purposes."
@@ -186,7 +212,7 @@ export function Step1() {
         </>
       )}
 
-      <Buttons>
+      {/* <Buttons>
         <Button
           data-cy="next-btn"
           isDisabled={
@@ -200,7 +226,7 @@ export function Step1() {
         >
           Next
         </Button>
-      </Buttons>
+      </Buttons> */}
     </Loader>
   );
 }

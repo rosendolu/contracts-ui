@@ -1,13 +1,14 @@
 // Copyright 2022-2024 use-ink/contracts-ui authors & contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { useEffect, useState } from 'react';
-import type { HTMLAttributes } from 'react';
 import { isWeb3Injected } from '@polkadot/extension-dapp';
-import { AccountsError, ExtensionError } from './common/AccountsError';
-import { useApi, useDatabase } from 'ui/contexts';
-import { Loader, ConnectionError } from 'ui/components/common';
 import { isKeyringLoaded } from 'lib/util';
+import type { HTMLAttributes } from 'react';
+import { useEffect, useState } from 'react';
+import { ConnectionError, Loader } from 'ui/components/common';
+import { ConnectWallet } from 'ui/components/common/ConnectWallet';
+import { useApi, useDatabase } from 'ui/contexts';
+import { AccountsError, ExtensionError } from './common/AccountsError';
 
 export function AwaitApis({ children }: HTMLAttributes<HTMLDivElement>): React.ReactElement {
   const { accounts, api, endpoint, status, systemChainType } = useApi();
@@ -16,6 +17,7 @@ export function AwaitApis({ children }: HTMLAttributes<HTMLDivElement>): React.R
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    if (status === 'connect' || status === 'disconnect') return;
     !db && setMessage('Loading data...');
     status === 'loading' && setMessage(`Connecting to ${endpoint}...`);
     !isKeyringLoaded() && setMessage(`Loading accounts...`);
@@ -40,7 +42,9 @@ export function AwaitApis({ children }: HTMLAttributes<HTMLDivElement>): React.R
 
   return (
     <>
-      {status === 'loading' || !db || !isKeyringLoaded() ? (
+      {status === 'connect' || status === 'disconnect' ? (
+        <ConnectWallet />
+      ) : status === 'loading' || !db || !isKeyringLoaded() ? (
         <Loader isLoading message={message} />
       ) : (
         children

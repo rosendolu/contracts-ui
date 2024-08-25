@@ -1,17 +1,17 @@
 // Copyright 2022-2024 use-ink/contracts-ui authors & contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { createContext, useEffect, useContext, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { web3Accounts, web3Enable, web3EnablePromise } from '@polkadot/extension-dapp';
 import { WsProvider } from '@polkadot/api';
+import { web3Accounts, web3Enable, web3EnablePromise } from '@polkadot/extension-dapp';
 import { keyring } from '@polkadot/ui-keyring';
-import { LOCAL_STORAGE_KEY, ROCOCO_CONTRACTS } from '../../constants';
-import { ApiPromise, ApiState, ChainProperties, Account, Status, WeightV2 } from 'types';
-import { isValidWsUrl, isKeyringLoaded } from 'lib/util';
-import { useLocalStorage } from 'ui/hooks/useLocalStorage';
-import { NoticeBanner } from 'ui/components/common/NoticeBanner';
+import { isKeyringLoaded, isValidWsUrl } from 'lib/util';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getChainProperties } from 'src/services/chain/chainProps';
+import { Account, ApiPromise, ApiState, ChainProperties, Status, WeightV2 } from 'types';
+import { NoticeBanner } from 'ui/components/common/NoticeBanner';
+import { useLocalStorage } from 'ui/hooks/useLocalStorage';
+import { LOCAL_STORAGE_KEY, ROCOCO_CONTRACTS } from '../../constants';
 
 // fixes internal pjs type mismatch `Type 'string' is not assignable to type '`0x${string}`'`
 export interface InjectedAccountWithMetaOverride {
@@ -26,6 +26,7 @@ export interface InjectedAccountWithMetaOverride {
 export const ApiContext = createContext<ApiState | undefined>(undefined);
 
 export const ApiContextProvider = ({ children }: React.PropsWithChildren<Partial<ApiState>>) => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const rpcUrl = searchParams.get('rpc');
   const [preferredEndpoint, setPreferredEndpoint] = useLocalStorage<string>(
@@ -36,7 +37,7 @@ export const ApiContextProvider = ({ children }: React.PropsWithChildren<Partial
   const [endpoint, setEndpoint] = useState(preferredEndpoint);
   const [accounts, setAccounts] = useState<Account[]>();
   const [chainProps, setChainProps] = useState<ChainProperties>();
-  const [status, setStatus] = useState<Status>('loading');
+  const [status, setStatus] = useState<Status>('connect');
   const [isSupported, setIsSupported] = useState(true);
   const [isEthereumChain, setIsEthereumChain] = useState(false);
 
@@ -48,7 +49,8 @@ export const ApiContextProvider = ({ children }: React.PropsWithChildren<Partial
     }
   }, [preferredEndpoint, rpcUrl, searchParams, setPreferredEndpoint]);
 
-  useEffect((): void => {
+  useEffect(() => {
+    if (status !== 'loading') return;
     setStatus('loading');
     const wsProvider = new WsProvider(endpoint);
     const _api = new ApiPromise({ provider: wsProvider });
@@ -64,9 +66,16 @@ export const ApiContextProvider = ({ children }: React.PropsWithChildren<Partial
       setIsEthereumChain(isEth);
     });
     _api.on('disconnected', () => {
-      setStatus('error');
+      // @ts-ignore
+      status === 'connected' && setStatus('error');
     });
-  }, [endpoint]);
+  }, [endpoint, status]);
+
+  useEffect(() => {
+    if (status === 'disconnect') {
+      api && api.disconnect();
+    }
+  }, [api, status]);
 
   useEffect(() => {
     const getAccounts = async () => {
@@ -82,6 +91,7 @@ export const ApiContextProvider = ({ children }: React.PropsWithChildren<Partial
             accounts as InjectedAccountWithMetaOverride[],
           );
         setAccounts(keyring.getAccounts());
+        navigate('/home');
       }
     };
     getAccounts().catch(e => console.error(e));
@@ -92,6 +102,7 @@ export const ApiContextProvider = ({ children }: React.PropsWithChildren<Partial
       value={{
         api,
         accounts,
+        setStatus,
         setEndpoint,
         endpoint,
         status,

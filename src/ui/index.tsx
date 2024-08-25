@@ -1,22 +1,22 @@
 // Copyright 2022-2024 use-ink/contracts-ui authors & contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
+import '@polkadot/api-augment';
 import { Buffer } from 'buffer';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import App from 'ui/components/App';
 import 'react-tooltip/dist/react-tooltip.css';
-import './styles/main.css';
-import '@polkadot/api-augment';
+import App from 'ui/components/App';
 import {
   AddContract,
+  AddressLookup,
   Contract,
   Homepage,
   Instantiate,
-  SelectCodeHash,
   NotFound,
-  AddressLookup,
+  SelectCodeHash,
 } from 'ui/pages';
+import './styles/main.css';
 
 globalThis.Buffer = Buffer;
 
@@ -34,7 +34,7 @@ root.render(
         <Route element={<AddContract />} path="add-contract" />
         <Route element={<AddressLookup />} path="address-lookup" />
         <Route element={<SelectCodeHash />} path="hash-lookup" />
-        <Route element={<Instantiate />} path="instantiate">
+        <Route element={<Instantiate />} path="home">
           <Route path=":codeHash" />
         </Route>
         <Route element={<Contract />} path="contract/:address/" />

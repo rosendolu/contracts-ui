@@ -9,7 +9,6 @@ import {
   ThemeContextProvider,
   TransactionsContextProvider,
 } from 'ui/contexts';
-import { Sidebar } from 'ui/layout/sidebar';
 
 export default function App() {
   return (
@@ -19,7 +18,7 @@ export default function App() {
           <TransactionsContextProvider>
             {/* we want the sidebar outside the outlet to prevent flickering in quicklinks */}
             <div className="relative inset-0 flex min-h-screen overflow-hidden text-black dark:bg-gray-900 dark:text-white md:fixed md:flex-row">
-              <Sidebar />
+              {/* <Sidebar /> */}
               <CheckBrowserSupport>
                 <AwaitApis>
                   <Outlet />

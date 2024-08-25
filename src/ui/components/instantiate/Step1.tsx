@@ -212,7 +212,7 @@ export function Step1() {
         </>
       )}
 
-      {/* <Buttons>
+      <Buttons>
         <Button
           data-cy="next-btn"
           isDisabled={
@@ -226,7 +226,7 @@ export function Step1() {
         >
           Next
         </Button>
-      </Buttons> */}
+      </Buttons>
     </Loader>
   );
 }
